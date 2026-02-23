@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Controle Fisioterapia</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2c7be5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f7fa;
+    }
+    h1 {
+      text-align: center;
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .card {
+      background: white;
+      padding: 15px;
+      margin-top: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    button {
+      background: #2c7be5;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Controle Fisio</h1>
+
+<h3>Novo Paciente</h3>
+<input type="text" id="nome" placeholder="Nome do paciente">
+<input type="number" id="valor" placeholder="Valor por sessão">
+<button onclick="adicionarPaciente()">Cadastrar</button>
+
+<h3>Pacientes</h3>
+<div id="lista"></div>
+
+<script>
+let pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
+
+function salvar() {
+  localStorage.setItem("pacientes", JSON.stringify(pacientes));
+}
+
+function adicionarPaciente() {
+  const nome = document.getElementById("nome").value;
+  const valor = parseFloat(document.getElementById("valor").value);
+
+  if (!nome || !valor) return alert("Preencha todos os campos");
+
+  pacientes.push({
+    id: Date.now(),
+    nome,
+    valorSessao: valor,
+    checkins: []
+  });
+
+  salvar();
+  render();
+  document.getElementById("nome").value = "";
+  document.getElementById("valor").value = "";
+}
+
+function adicionarCheckin(id) {
+  const paciente = pacientes.find(p => p.id === id);
+  paciente.checkins.push({
+    data: new Date().toISOString(),
+    valor: paciente.valorSessao
+  });
+  salvar();
+  render();
+}
+
+function calcularTotalMes(paciente) {
+  const hoje = new Date();
+  return paciente.checkins
+    .filter(c => {
+      const d = new Date(c.data);
+      return d.getMonth() === hoje.getMonth() &&
+             d.getFullYear() === hoje.getFullYear();
+    })
+    .reduce((total, c) => total + c.valor, 0);
+}
+
+function render() {
+  const lista = document.getElementById("lista");
+  lista.innerHTML = "";
+
+  pacientes.forEach(p => {
+    const total = calcularTotalMes(p);
+
+    lista.innerHTML += `
+      <div class="card">
+        <strong>${p.nome}</strong><br>
+        Valor sessão: R$ ${p.valorSessao}<br>
+        Total mês atual: <strong>R$ ${total}</strong><br><br>
+        <button onclick="adicionarCheckin(${p.id})">
+          Registrar Check-in
+        </button>
+      </div>
+    `;
+  });
+}
+
+render();
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
+}
+</script>
+
+</body>
+</html>
