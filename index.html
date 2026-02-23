@@ -28,11 +28,16 @@
   }
 
   .card {
-    background: white;
-    padding: 15px;
-    margin-top: 10px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  background: rgba(255, 255, 255, 0.2); /* Transparente */
+  backdrop-filter: blur(10px); /* Desfoque */
+  -webkit-backdrop-filter: blur(10px); /* Suporte Safari */
+  padding: 15px;
+  margin-top: 10px;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  color: white;
+}
   }
 
   button {
@@ -139,6 +144,7 @@ if ("serviceWorker" in navigator) {
 </body>
 
 </html>
+
 
 
 
