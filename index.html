@@ -4,68 +4,94 @@
   <meta charset="UTF-8">
   <title>Controle Pacientes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#2c7be5">
+  <meta name="theme-color" content="#ff69b4">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="manifest" href="manifest.json">
 
- <style>
-  body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-  background: linear-gradient(135deg, #fbc2eb, #ff9a9e); /* Rosa moderno */
-  }
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #fbc2eb, #ff9a9e);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
 
-  h1 {
-    text-align: center;
-    color: white; /* para combinar com fundo rosa */
-  }
+    .app-container {
+      width: 100%;
+      max-width: 400px;
+      padding: 20px;
+    }
 
-  input, button {
-    padding: 10px;
-    margin: 5px 0;
-    width: 100%;
-    box-sizing: border-box;
-  }
+    h1 {
+      text-align: center;
+      color: white;
+      margin-bottom: 20px;
+    }
 
-  .card {
-  background: rgba(255, 255, 255, 0.2); /* Transparente */
-  backdrop-filter: blur(10px); /* Desfoque */
-  -webkit-backdrop-filter: blur(10px); /* Suporte Safari */
-  padding: 15px;
-  margin-top: 10px;
-  border-radius: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-  color: white;
-}
-  }
+    h3 {
+      color: white;
+      margin-top: 20px;
+    }
 
-  button {
-    background: #024f14; /* Verde bonito */
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: 0.3s;
-  }
+    input, button {
+      padding: 12px;
+      margin: 8px 0;
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 10px;
+      border: none;
+      font-size: 14px;
+    }
 
-  button:hover {
-    background: #218838; /* Verde mais escuro no hover */
-  }
-</style>
+    input {
+      background: rgba(255,255,255,0.9);
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 15px;
+      margin-top: 12px;
+      border-radius: 15px;
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      color: white;
+    }
+
+    button {
+      background: linear-gradient(45deg, #024f14, #28a745);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      transform: scale(1.03);
+      opacity: 0.9;
+    }
+  </style>
 </head>
+
 <body>
 
-<h1>Meus Pacientes</h1>
+<div class="app-container">
 
-<h3>Novo Paciente</h3>
-<input type="text" id="nome" placeholder="Nome do paciente">
-<input type="number" id="valor" placeholder="Valor por sessão">
-<button onclick="adicionarPaciente()">Cadastrar</button>
+  <h1>Meus Pacientes</h1>
 
-<h3>Pacientes</h3>
-<div id="lista"></div>
+  <h3>Novo Paciente</h3>
+  <input type="text" id="nome" placeholder="Nome do paciente">
+  <input type="number" id="valor" placeholder="Valor por sessão">
+  <button onclick="adicionarPaciente()">Cadastrar</button>
+
+  <h3>Pacientes</h3>
+  <div id="lista"></div>
+
+</div>
 
 <script>
 let pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
@@ -142,7 +168,6 @@ if ("serviceWorker" in navigator) {
 </script>
 
 </body>
-
 </html>
 
 
