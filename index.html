@@ -180,6 +180,10 @@ function render() {
           Registrar Check-in
         </button>
 
+        <button onclick="alterarValor(${p.id})">
+          Alterar Valor
+        </button>
+
         <button class="btn-excluir" onclick="excluirPaciente(${p.id})">
           Excluir Paciente
         </button>
@@ -225,10 +229,34 @@ function fecharMes() {
 
   alert("Mês fechado com sucesso!");
 }
+function alterarValor(id) {
+  const paciente = pacientes.find(p => p.id === id);
+
+  const novoValor = prompt(
+    `Valor atual: R$ ${paciente.valorSessao}\nDigite o novo valor da sessão:`
+  );
+
+  if (!novoValor) return;
+
+  const valorNumerico = parseFloat(novoValor);
+
+  if (isNaN(valorNumerico) || valorNumerico <= 0) {
+    alert("Digite um valor válido.");
+    return;
+  }
+
+  paciente.valorSessao = valorNumerico;
+
+  salvar();
+  render();
+
+  alert("Valor atualizado com sucesso!");
+}  
 </script>
 
 </body>
 </html>
+
 
 
 
