@@ -96,12 +96,9 @@
 
   <h3>Pacientes</h3>
   
-  <button onclick="fecharMes()">
-    Fechar Mês
-   </button> 
-  <button class="btn-excluir" onclick="excluirTodos()">
-  Excluir Todos os Pacientes
-  </button>
+  <button onclick="fecharMes()">Fechar Mês</button> 
+  <button class="btn-excluir" onclick="excluirTodos()">Excluir Todos os Pacientes</button>
+
   <div id="lista"></div>
 
 </div>
@@ -143,92 +140,40 @@ function adicionarCheckin(id) {
 }
 
 function excluirPaciente(id) {
-  const confirmar = confirm("Tem certeza que deseja excluir este paciente?");
-  if (!confirmar) return;
-
+  if (!confirm("Tem certeza que deseja excluir este paciente?")) return;
   pacientes = pacientes.filter(p => p.id !== id);
-
   salvar();
   render();
 }
 
-function calcularTotalMes(paciente) {
-  const hoje = new Date();
-  return paciente.checkins
-    .filter(c => {
-      const d = new Date(c.data);
-      return d.getMonth() === hoje.getMonth() &&
-             d.getFullYear() === hoje.getFullYear();
-    })
-    .reduce((total, c) => total + c.valor, 0);
-}
-
-function render() {
-  const lista = document.getElementById("lista");
-  lista.innerHTML = "";
-
-  pacientes.forEach(p => {
-    const total = calcularTotalMes(p);
-
-    lista.innerHTML += `
-      <div class="card">
-        <strong>${p.nome}</strong><br>
-        Valor sessão: R$ ${p.valorSessao}<br>
-        Total mês atual: <strong>R$ ${total}</strong><br><br>
-
-        <button onclick="adicionarCheckin(${p.id})">
-          Registrar Check-in
-        </button>
-
-        <button onclick="alterarValor(${p.id})">
-          Alterar Valor
-        </button>
-
-        <button class="btn-excluir" onclick="excluirPaciente(${p.id})">
-          Excluir Paciente
-        </button>
-      </div>
-    `;
-  });
-}
-
-render();
 function excluirTodos() {
   if (pacientes.length === 0) {
     alert("Não há pacientes cadastrados.");
     return;
   }
 
-  const confirmar = confirm("Tem certeza que deseja excluir TODOS os pacientes? Essa ação não pode ser desfeita.");
-
-  if (!confirmar) return;
+  if (!confirm("Tem certeza que deseja excluir TODOS os pacientes?")) return;
 
   pacientes = [];
   salvar();
   render();
 }
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js");
-}
+
 function fecharMes() {
   if (pacientes.length === 0) {
     alert("Não há pacientes cadastrados.");
     return;
   }
 
-  const confirmar = confirm("Deseja fechar o mês? Todos os check-ins serão apagados.");
+  if (!confirm("Deseja fechar o mês? Todos os check-ins serão apagados.")) return;
 
-  if (!confirmar) return;
-
-  pacientes.forEach(p => {
-    p.checkins = [];
-  });
-
+  pacientes.forEach(p => p.checkins = []);
   salvar();
   render();
 
   alert("Mês fechado com sucesso!");
 }
+
 function alterarValor(id) {
   const paciente = pacientes.find(p => p.id === id);
 
@@ -246,17 +191,82 @@ function alterarValor(id) {
   }
 
   paciente.valorSessao = valorNumerico;
-
   salvar();
   render();
 
   alert("Valor atualizado com sucesso!");
-}  
+}
+
+function calcularTotalMes(paciente) {
+  const hoje = new Date();
+  return paciente.checkins
+    .filter(c => {
+      const d = new Date(c.data);
+      return d.getMonth() === hoje.getMonth() &&
+             d.getFullYear() === hoje.getFullYear();
+    })
+    .reduce((total, c) => total + c.valor, 0);
+}
+
+function copiarInfo(id) {
+  const paciente = pacientes.find(p => p.id === id);
+  const total = calcularTotalMes(paciente);
+  const hoje = new Date();
+  const mesAno = `${String(hoje.getMonth() + 1).padStart(2, '0')}/${hoje.getFullYear()}`;
+
+  const sessoesMes = paciente.checkins.filter(c => {
+    const d = new Date(c.data);
+    return d.getMonth() === hoje.getMonth() &&
+           d.getFullYear() === hoje.getFullYear();
+  }).length;
+
+  const texto =
+`📋 *Resumo de Atendimento*
+
+👤 Paciente: ${paciente.nome}
+📅 Mês: ${mesAno}
+💰 Valor da sessão: R$ ${paciente.valorSessao}
+🧾 Sessões realizadas: ${sessoesMes}
+💵 Total no mês: R$ ${total}
+
+Qualquer dúvida estou à disposição!`;
+
+  navigator.clipboard.writeText(texto)
+    .then(() => alert("Informações copiadas!"))
+    .catch(() => alert("Não foi possível copiar."));
+}
+
+function render() {
+  const lista = document.getElementById("lista");
+  lista.innerHTML = "";
+
+  pacientes.forEach(p => {
+    const total = calcularTotalMes(p);
+
+    lista.innerHTML += `
+      <div class="card">
+        <strong>${p.nome}</strong><br>
+        Valor sessão: R$ ${p.valorSessao}<br>
+        Total mês atual: <strong>R$ ${total}</strong><br><br>
+
+        <button onclick="adicionarCheckin(${p.id})">Registrar Check-in</button>
+        <button onclick="alterarValor(${p.id})">Alterar Valor</button>
+        <button onclick="copiarInfo(${p.id})">Copiar Informações</button>
+        <button class="btn-excluir" onclick="excluirPaciente(${p.id})">Excluir Paciente</button>
+      </div>
+    `;
+  });
+}
+
+render();
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
+}
 </script>
 
 </body>
 </html>
-
 
 
 
