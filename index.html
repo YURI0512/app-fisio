@@ -95,6 +95,9 @@
   <button onclick="adicionarPaciente()">Cadastrar</button>
 
   <h3>Pacientes</h3>
+  <button class="btn-excluir" onclick="excluirTodos()">
+  Excluir Todos os Pacientes
+  </button>
   <div id="lista"></div>
 
 </div>
@@ -182,14 +185,29 @@ function render() {
 }
 
 render();
+function excluirTodos() {
+  if (pacientes.length === 0) {
+    alert("Não há pacientes cadastrados.");
+    return;
+  }
 
+  const confirmar = confirm("Tem certeza que deseja excluir TODOS os pacientes? Essa ação não pode ser desfeita.");
+
+  if (!confirmar) return;
+
+  pacientes = [];
+  salvar();
+  render();
+}
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("service-worker.js");
 }
+  
 </script>
 
 </body>
 </html>
+
 
 
 
