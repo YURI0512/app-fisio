@@ -52,6 +52,7 @@
     }
 
     .card {
+      position: relative;
       background: rgba(255, 255, 255, 0.2);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
@@ -79,6 +80,29 @@
     .btn-excluir {
       background: linear-gradient(45deg, #c82333, #dc3545);
       margin-top: 8px;
+    }
+
+    .btn-copy {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.3);
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+      padding: 0;
+    }
+
+    .btn-copy:hover {
+      transform: scale(1.1);
     }
   </style>
 </head>
@@ -245,13 +269,16 @@ function render() {
 
     lista.innerHTML += `
       <div class="card">
+        <button class="btn-copy" onclick="copiarInfo(${p.id})" title="Copiar informações">
+          📋
+        </button>
+
         <strong>${p.nome}</strong><br>
         Valor sessão: R$ ${p.valorSessao}<br>
         Total mês atual: <strong>R$ ${total}</strong><br><br>
 
         <button onclick="adicionarCheckin(${p.id})">Registrar Check-in</button>
         <button onclick="alterarValor(${p.id})">Alterar Valor</button>
-        <button onclick="copiarInfo(${p.id})">Copiar Informações</button>
         <button class="btn-excluir" onclick="excluirPaciente(${p.id})">Excluir Paciente</button>
       </div>
     `;
@@ -267,6 +294,7 @@ if ("serviceWorker" in navigator) {
 
 </body>
 </html>
+
 
 
 
