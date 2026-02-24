@@ -108,6 +108,7 @@
 
 <script>
 let pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
+let historicoMensal = JSON.parse(localStorage.getItem("historicoMensal")) || [];  
 
 function salvar() {
   localStorage.setItem("pacientes", JSON.stringify(pacientes));
@@ -212,13 +213,35 @@ function fecharMes() {
     return;
   }
 
-  const confirmar = confirm("Deseja fechar o mês? Todos os check-ins serão apagados.");
-
+  const confirmar = confirm("Deseja fechar o mês? O faturamento será salvo e os check-ins serão zerados.");
   if (!confirmar) return;
 
+  const hoje = new Date();
+  const mesAno = `${String(hoje.getMonth() + 1).padStart(2, '0')}/${hoje.getFullYear()}`;
+
+  let totalMes = 0;
+
+  pacientes.forEach(p => {
+    totalMes += calcularTotalMes(p);
+  });
+
+  historicoMensal.push({
+    mes: mesAno,
+    total: totalMes
+  });
+
+  localStorage.setItem("historicoMensal", JSON.stringify(historicoMensal));
+
+  // Zera check-ins
   pacientes.forEach(p => {
     p.checkins = [];
   });
+
+  salvar();
+  render();
+
+  alert(`Mês ${mesAno} fechado!\nTotal faturado: R$ ${totalMes}`);
+}
 
   salvar();
   render();
@@ -229,6 +252,7 @@ function fecharMes() {
 
 </body>
 </html>
+
 
 
 
