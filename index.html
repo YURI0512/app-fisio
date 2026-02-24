@@ -75,6 +75,11 @@
       transform: scale(1.03);
       opacity: 0.9;
     }
+
+    .btn-excluir {
+      background: linear-gradient(45deg, #c82333, #dc3545);
+      margin-top: 8px;
+    }
   </style>
 </head>
 
@@ -130,6 +135,16 @@ function adicionarCheckin(id) {
   render();
 }
 
+function excluirPaciente(id) {
+  const confirmar = confirm("Tem certeza que deseja excluir este paciente?");
+  if (!confirmar) return;
+
+  pacientes = pacientes.filter(p => p.id !== id);
+
+  salvar();
+  render();
+}
+
 function calcularTotalMes(paciente) {
   const hoje = new Date();
   return paciente.checkins
@@ -153,8 +168,13 @@ function render() {
         <strong>${p.nome}</strong><br>
         Valor sessão: R$ ${p.valorSessao}<br>
         Total mês atual: <strong>R$ ${total}</strong><br><br>
+
         <button onclick="adicionarCheckin(${p.id})">
           Registrar Check-in
+        </button>
+
+        <button class="btn-excluir" onclick="excluirPaciente(${p.id})">
+          Excluir Paciente
         </button>
       </div>
     `;
@@ -170,6 +190,7 @@ if ("serviceWorker" in navigator) {
 
 </body>
 </html>
+
 
 
 
