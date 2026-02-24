@@ -95,6 +95,10 @@
   <button onclick="adicionarPaciente()">Cadastrar</button>
 
   <h3>Pacientes</h3>
+  
+  <button onclick="fecharMes()">
+    Fechar Mês
+   </button> 
   <button class="btn-excluir" onclick="excluirTodos()">
   Excluir Todos os Pacientes
   </button>
@@ -202,11 +206,30 @@ function excluirTodos() {
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("service-worker.js");
 }
-  
+function fecharMes() {
+  if (pacientes.length === 0) {
+    alert("Não há pacientes cadastrados.");
+    return;
+  }
+
+  const confirmar = confirm("Deseja fechar o mês? Todos os check-ins serão apagados.");
+
+  if (!confirmar) return;
+
+  pacientes.forEach(p => {
+    p.checkins = [];
+  });
+
+  salvar();
+  render();
+
+  alert("Mês fechado com sucesso!");
+}  
 </script>
 
 </body>
 </html>
+
 
 
 
