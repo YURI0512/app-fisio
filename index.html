@@ -40,7 +40,7 @@
       margin-top: 20px;
     }
 
-    input, button {
+    input, button, select {
       padding: 12px;
       margin: 8px 0;
       width: 100%;
@@ -81,6 +81,14 @@
       border-radius: 10px;
       padding: 10px;
     }
+
+    #modalAgendamento {
+      display: none;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
   </style>
 </head>
 
@@ -107,6 +115,17 @@
   <div id="agenda" style="display:none;">
     <h3>Agenda</h3>
     <div id="calendar"></div>
+
+    <!-- MODAL -->
+    <div id="modalAgendamento">
+      <h4>Novo Agendamento</h4>
+
+      <input type="time" id="horaModal">
+      <select id="pacienteModal"></select>
+
+      <button onclick="confirmarAgendamento()">Salvar</button>
+      <button onclick="fecharModal()">Cancelar</button>
+    </div>
   </div>
 
 </div>
@@ -114,6 +133,9 @@
 <script>
 let pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
 let agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
+
+let dataSelecionada = null;
+let calendarGlobal = null;
 
 function salvar() {
   localStorage.setItem("pacientes", JSON.stringify(pacientes));
@@ -245,14 +267,14 @@ function render() {
   });
 }
 
-// ===== AGENDA GOOGLE STYLE =====
+// ===== AGENDA MELHORADA =====
 function abrirAgenda() {
   agenda.style.display = "block";
 
   setTimeout(() => {
     const calendarEl = document.getElementById('calendar');
 
-    const calendar = new FullCalendar.Calendar(calendarEl, {
+    calendarGlobal = new FullCalendar.Calendar(calendarEl, {
       initialView: 'dayGridMonth',
       locale: 'pt-br',
 
@@ -266,36 +288,51 @@ function abrirAgenda() {
       }),
 
       dateClick: function(info) {
-        const hora = prompt("Digite o horário (ex: 14:00)");
-        if (!hora) return;
+        dataSelecionada = info.dateStr;
 
-        let lista = pacientes.map(p => `${p.id} - ${p.nome}`).join("\n");
-        const pacienteId = prompt("Escolha o ID:\n" + lista);
+        const select = document.getElementById("pacienteModal");
+        select.innerHTML = "";
 
-        if (!pacienteId) return;
-
-        agendamentos.push({
-          id: Date.now(),
-          data: info.dateStr,
-          hora: hora,
-          pacienteId: pacienteId
+        pacientes.forEach(p => {
+          select.innerHTML += `<option value="${p.id}">${p.nome}</option>`;
         });
 
-        salvar();
-        calendar.refetchEvents();
+        document.getElementById("modalAgendamento").style.display = "block";
       },
 
       eventClick: function(info) {
         if (confirm("Excluir agendamento?")) {
           agendamentos = agendamentos.filter(a => a.id != info.event.id);
           salvar();
-          calendar.refetchEvents();
+          calendarGlobal.refetchEvents();
         }
       }
     });
 
-    calendar.render();
+    calendarGlobal.render();
   }, 200);
+}
+
+function confirmarAgendamento() {
+  const hora = document.getElementById("horaModal").value;
+  const pacienteId = document.getElementById("pacienteModal").value;
+
+  if (!hora) return alert("Escolha o horário");
+
+  agendamentos.push({
+    id: Date.now(),
+    data: dataSelecionada,
+    hora: hora,
+    pacienteId: pacienteId
+  });
+
+  salvar();
+  calendarGlobal.refetchEvents();
+  fecharModal();
+}
+
+function fecharModal() {
+  document.getElementById("modalAgendamento").style.display = "none";
 }
 
 render();
