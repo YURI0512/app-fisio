@@ -287,14 +287,17 @@ function abrirAgenda() {
         successCallback(eventos);
       },
 
-      dateClick: function(info) {
-        dataSelecionada = info.dateStr;
+      select: function(info) {
+        dataSelecionada = info.startStr.split("T")[0];
 
-        const select = document.getElementById("pacienteModal");
-        select.innerHTML = "";
+        const horaSelecionada = info.startStr.split("T")[1]?.slice(0,5);
+        document.getElementById("horaModal").value = horaSelecionada || "";
+
+        const selectPaciente = document.getElementById("pacienteModal");
+        selectPaciente.innerHTML = "";
 
         pacientes.forEach(p => {
-          select.innerHTML += `<option value="${p.id}">${p.nome}</option>`;
+          selectPaciente.innerHTML += `<option value="${p.id}">${p.nome}</option>`;
         });
 
         document.getElementById("modalAgendamento").style.display = "block";
