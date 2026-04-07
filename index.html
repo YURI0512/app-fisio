@@ -30,14 +30,9 @@
       padding: 20px;
     }
 
-    h1 {
+    h1, h3 {
       text-align: center;
       color: white;
-    }
-
-    h3 {
-      color: white;
-      margin-top: 20px;
     }
 
     input, button, select {
@@ -111,18 +106,14 @@
 
   <div id="lista"></div>
 
-  <!-- CALENDÁRIO -->
   <div id="agenda" style="display:none;">
     <h3>Agenda</h3>
     <div id="calendar"></div>
 
-    <!-- MODAL -->
     <div id="modalAgendamento">
       <h4>Novo Agendamento</h4>
-
       <input type="time" id="horaModal">
       <select id="pacienteModal"></select>
-
       <button onclick="confirmarAgendamento()">Salvar</button>
       <button onclick="fecharModal()">Cancelar</button>
     </div>
@@ -193,7 +184,6 @@ function fecharMes() {
 function alterarValor(id) {
   const paciente = pacientes.find(p => p.id === id);
   const novoValor = prompt(`Valor atual: R$ ${paciente.valorSessao}`);
-
   if (!novoValor) return;
 
   const valorNumerico = parseFloat(novoValor);
@@ -215,7 +205,7 @@ function calcularTotalMes(paciente) {
     .reduce((t, c) => t + c.valor, 0);
 }
 
-// ===== WHATSAPP (INALTERADO) =====
+// ===== WHATSAPP =====
 function copiarInfo(id) {
   const paciente = pacientes.find(p => p.id === id);
   const total = calcularTotalMes(paciente);
@@ -267,25 +257,35 @@ function render() {
   });
 }
 
-// ===== AGENDA MELHORADA =====
+// ===== AGENDA PROFISSIONAL =====
 function abrirAgenda() {
   agenda.style.display = "block";
 
   setTimeout(() => {
     const calendarEl = document.getElementById('calendar');
 
+    // 🔥 NÃO recria se já existe
+    if (calendarGlobal) {
+      calendarGlobal.refetchEvents();
+      return;
+    }
+
     calendarGlobal = new FullCalendar.Calendar(calendarEl, {
       initialView: 'dayGridMonth',
       locale: 'pt-br',
 
-      events: agendamentos.map(a => {
-        const p = pacientes.find(p => p.id == a.pacienteId);
-        return {
-          id: a.id,
-          title: p ? p.nome : "Paciente",
-          start: a.data + "T" + a.hora
-        };
-      }),
+      events: function(fetchInfo, successCallback) {
+        const eventos = agendamentos.map(a => {
+          const p = pacientes.find(p => p.id == a.pacienteId);
+          return {
+            id: a.id,
+            title: p ? p.nome : "Paciente",
+            start: a.data + "T" + a.hora
+          };
+        });
+
+        successCallback(eventos);
+      },
 
       dateClick: function(info) {
         dataSelecionada = info.dateStr;
@@ -327,7 +327,11 @@ function confirmarAgendamento() {
   });
 
   salvar();
-  calendarGlobal.refetchEvents();
+
+  if (calendarGlobal) {
+    calendarGlobal.refetchEvents();
+  }
+
   fecharModal();
 }
 
