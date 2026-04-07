@@ -9,7 +9,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="manifest" href="manifest.json">
 
-  <!-- FULLCALENDAR -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 
@@ -257,22 +256,22 @@ function render() {
   });
 }
 
-// ===== AGENDA PROFISSIONAL =====
+// ===== AGENDA COM DRAG & DROP =====
 function abrirAgenda() {
   agenda.style.display = "block";
 
   setTimeout(() => {
     const calendarEl = document.getElementById('calendar');
 
-    // 🔥 NÃO recria se já existe
     if (calendarGlobal) {
       calendarGlobal.refetchEvents();
       return;
     }
 
     calendarGlobal = new FullCalendar.Calendar(calendarEl, {
-      initialView: 'dayGridMonth',
+      initialView: 'timeGridWeek',
       locale: 'pt-br',
+      editable: true,
 
       events: function(fetchInfo, successCallback) {
         const eventos = agendamentos.map(a => {
@@ -298,6 +297,20 @@ function abrirAgenda() {
         });
 
         document.getElementById("modalAgendamento").style.display = "block";
+      },
+
+      eventDrop: function(info) {
+        const eventoId = info.event.id;
+        const agendamento = agendamentos.find(a => a.id == eventoId);
+
+        if (agendamento) {
+          const novaData = info.event.start;
+
+          agendamento.data = novaData.toISOString().split("T")[0];
+          agendamento.hora = novaData.toTimeString().slice(0,5);
+
+          salvar();
+        }
       },
 
       eventClick: function(info) {
