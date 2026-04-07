@@ -9,6 +9,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="manifest" href="manifest.json">
 
+  <!-- FULLCALENDAR -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
   <style>
     body {
       margin: 0;
@@ -29,7 +33,6 @@
     h1 {
       text-align: center;
       color: white;
-      margin-bottom: 20px;
     }
 
     h3 {
@@ -37,18 +40,12 @@
       margin-top: 20px;
     }
 
-    input, button, select {
+    input, button {
       padding: 12px;
       margin: 8px 0;
       width: 100%;
-      box-sizing: border-box;
       border-radius: 10px;
       border: none;
-      font-size: 14px;
-    }
-
-    input {
-      background: rgba(255,255,255,0.9);
     }
 
     .card {
@@ -64,7 +61,6 @@
     button {
       background: linear-gradient(45deg, #024f14, #28a745);
       color: white;
-      cursor: pointer;
     }
 
     .btn-excluir {
@@ -77,8 +73,13 @@
       right: 10px;
       width: 36px;
       height: 36px;
-      border-radius: 8px;
-      font-size: 18px;
+    }
+
+    #calendar {
+      margin-top: 20px;
+      background: white;
+      border-radius: 10px;
+      padding: 10px;
     }
   </style>
 </head>
@@ -102,17 +103,10 @@
 
   <div id="lista"></div>
 
-  <!-- AGENDA -->
-  <div id="agenda" style="display:none; margin-top:20px;">
+  <!-- CALENDÁRIO -->
+  <div id="agenda" style="display:none;">
     <h3>Agenda</h3>
-
-    <input type="date" id="dataAgenda" onchange="renderAgenda()">
-    <input type="time" id="horaAgenda">
-    <select id="pacienteAgenda"></select>
-
-    <button onclick="salvarAgendamento()">Salvar Agendamento</button>
-
-    <div id="listaAgenda"></div>
+    <div id="calendar"></div>
   </div>
 
 </div>
@@ -142,8 +136,6 @@ function adicionarPaciente() {
 
   salvar();
   render();
-  nome.value = "";
-  valor.value = "";
 }
 
 function adicionarCheckin(id) {
@@ -201,7 +193,7 @@ function calcularTotalMes(paciente) {
     .reduce((t, c) => t + c.valor, 0);
 }
 
-// ===== MENSAGEM ORIGINAL MANTIDA =====
+// ===== WHATSAPP (INALTERADO) =====
 function copiarInfo(id) {
   const paciente = pacientes.find(p => p.id === id);
   const total = calcularTotalMes(paciente);
@@ -253,50 +245,57 @@ function render() {
   });
 }
 
-// ===== AGENDA =====
+// ===== AGENDA GOOGLE STYLE =====
 function abrirAgenda() {
   agenda.style.display = "block";
 
-  pacienteAgenda.innerHTML = "";
-  pacientes.forEach(p => {
-    pacienteAgenda.innerHTML += `<option value="${p.id}">${p.nome}</option>`;
-  });
-}
+  setTimeout(() => {
+    const calendarEl = document.getElementById('calendar');
 
-function salvarAgendamento() {
-  const data = dataAgenda.value;
-  const hora = horaAgenda.value;
-  const pacienteId = pacienteAgenda.value;
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      locale: 'pt-br',
 
-  if (!data || !hora) return alert("Preencha data e hora");
+      events: agendamentos.map(a => {
+        const p = pacientes.find(p => p.id == a.pacienteId);
+        return {
+          id: a.id,
+          title: p ? p.nome : "Paciente",
+          start: a.data + "T" + a.hora
+        };
+      }),
 
-  agendamentos.push({
-    id: Date.now(),
-    data,
-    hora,
-    pacienteId
-  });
+      dateClick: function(info) {
+        const hora = prompt("Digite o horário (ex: 14:00)");
+        if (!hora) return;
 
-  salvar();
-  renderAgenda();
-}
+        let lista = pacientes.map(p => `${p.id} - ${p.nome}`).join("\n");
+        const pacienteId = prompt("Escolha o ID:\n" + lista);
 
-function renderAgenda() {
-  const data = dataAgenda.value;
-  listaAgenda.innerHTML = "";
+        if (!pacienteId) return;
 
-  agendamentos
-    .filter(a => a.data === data)
-    .sort((a,b) => a.hora.localeCompare(b.hora))
-    .forEach(a => {
-      const p = pacientes.find(p => p.id == a.pacienteId);
+        agendamentos.push({
+          id: Date.now(),
+          data: info.dateStr,
+          hora: hora,
+          pacienteId: pacienteId
+        });
 
-      listaAgenda.innerHTML += `
-        <div class="card">
-          ⏰ ${a.hora} - ${p ? p.nome : "?"}
-        </div>
-      `;
+        salvar();
+        calendar.refetchEvents();
+      },
+
+      eventClick: function(info) {
+        if (confirm("Excluir agendamento?")) {
+          agendamentos = agendamentos.filter(a => a.id != info.event.id);
+          salvar();
+          calendar.refetchEvents();
+        }
+      }
     });
+
+    calendar.render();
+  }, 200);
 }
 
 render();
