@@ -273,6 +273,8 @@ function abrirAgenda() {
       locale: 'pt-br',
       editable: true,
       allDaySlot: false,
+      selecttable: true,
+      selectMirror: true,
 
       events: function(fetchInfo, successCallback) {
         const eventos = agendamentos.map(a => {
