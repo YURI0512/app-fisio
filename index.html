@@ -269,68 +269,62 @@ function abrirAgenda() {
     }
 
     calendarGlobal = new FullCalendar.Calendar(calendarEl, {
-  initialView: 'timeGridWeek',
-  locale: 'pt-br',
-  editable: true,
-  allDaySlot: false,
+      initialView: 'timeGridWeek',
+      locale: 'pt-br',
+      editable: true,
 
-  selectable: true,
-  selectMirror: true,
+      events: function(fetchInfo, successCallback) {
+        const eventos = agendamentos.map(a => {
+          const p = pacientes.find(p => p.id == a.pacienteId);
+          return {
+            id: a.id,
+            title: p ? p.nome : "Paciente",
+            start: a.data + "T" + a.hora
+          };
+        });
 
-  events: function(fetchInfo, successCallback) {
-    const eventos = agendamentos.map(a => {
-      const p = pacientes.find(p => p.id == a.pacienteId);
-      return {
-        id: a.id,
-        title: p ? p.nome : "Paciente",
-        start: a.data + "T" + a.hora
-      };
+        successCallback(eventos);
+      },
+
+      dateClick: function(info) {
+        dataSelecionada = info.dateStr;
+
+        const select = document.getElementById("pacienteModal");
+        select.innerHTML = "";
+
+        pacientes.forEach(p => {
+          select.innerHTML += `<option value="${p.id}">${p.nome}</option>`;
+        });
+
+        document.getElementById("modalAgendamento").style.display = "block";
+      },
+
+      eventDrop: function(info) {
+        const eventoId = info.event.id;
+        const agendamento = agendamentos.find(a => a.id == eventoId);
+
+        if (agendamento) {
+          const novaData = info.event.start;
+
+          agendamento.data = novaData.toISOString().split("T")[0];
+          agendamento.hora = novaData.toTimeString().slice(0,5);
+
+          salvar();
+        }
+      },
+
+      eventClick: function(info) {
+        if (confirm("Excluir agendamento?")) {
+          agendamentos = agendamentos.filter(a => a.id != info.event.id);
+          salvar();
+          calendarGlobal.refetchEvents();
+        }
+      }
     });
 
-    successCallback(eventos);
-  },
-
-  select: function(info) {
-    dataSelecionada = info.startStr.split("T")[0];
-
-    const horaSelecionada = info.startStr.split("T")[1];
-    document.getElementById("horaModal").value =
-      horaSelecionada ? horaSelecionada.slice(0,5) : "";
-
-    const selectPaciente = document.getElementById("pacienteModal");
-    selectPaciente.innerHTML = "";
-
-    pacientes.forEach(p => {
-      selectPaciente.innerHTML += `<option value="${p.id}">${p.nome}</option>`;
-    });
-
-    document.getElementById("modalAgendamento").style.display = "block";
-  },
-
-  eventDrop: function(info) {
-    const eventoId = info.event.id;
-    const agendamento = agendamentos.find(a => a.id == eventoId);
-
-    if (agendamento) {
-      const novaData = info.event.start;
-
-      agendamento.data = novaData.toISOString().split("T")[0];
-      agendamento.hora = novaData.toTimeString().slice(0,5);
-
-      salvar();
-    }
-  },
-
-  eventClick: function(info) {
-    if (confirm("Excluir agendamento?")) {
-      agendamentos = agendamentos.filter(a => a.id != info.event.id);
-      salvar();
-      calendarGlobal.refetchEvents();
-    }
-  }
-});
-
-
+    calendarGlobal.render();
+  }, 200);
+}
 
 function confirmarAgendamento() {
   const hora = document.getElementById("horaModal").value;
