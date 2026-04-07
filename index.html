@@ -272,6 +272,7 @@ function abrirAgenda() {
       initialView: 'timeGridWeek',
       locale: 'pt-br',
       editable: true,
+      allDaySlot: false,
 
       events: function(fetchInfo, successCallback) {
         const eventos = agendamentos.map(a => {
