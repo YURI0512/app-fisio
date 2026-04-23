@@ -179,7 +179,38 @@ function adicionarPaciente() {
   salvar();
   render();
 }
+// ===== FECHAR MÊS =====
+function fecharMes() {
+  if (pacientes.length === 0) {
+    alert("Não há pacientes cadastrados.");
+    return;
+  }
 
+  if (!confirm("Deseja fechar o mês? Todos os check-ins serão apagados.")) return;
+
+  pacientes.forEach(p => p.checkins = []);
+
+  salvar();
+  render();
+
+  alert("Mês fechado com sucesso!");
+}
+
+// ===== EXCLUIR TODOS =====
+function excluirTodos() {
+  if (pacientes.length === 0) {
+    alert("Não há pacientes cadastrados.");
+    return;
+  }
+
+  if (!confirm("Tem certeza que deseja excluir TODOS os pacientes?")) return;
+
+  pacientes = [];
+  salvar();
+  render();
+
+  alert("Todos os pacientes foram excluídos!");
+}
 function adicionarCheckin(id) {
   const paciente = pacientes.find(p => p.id === id);
 
@@ -298,7 +329,8 @@ function verHistorico(id) {
 
 // ===== RENDER =====
 function render() {
-  lista.innerHTML = "";
+const lista = document.getElementById("lista");
+lista.innerHTML = "";
 
   pacientes.forEach(p => {
     const total = calcularTotalMes(p);
@@ -324,7 +356,7 @@ function render() {
 
 // ===== AGENDA =====
 function abrirAgenda() {
-  agenda.style.display = "block";
+  document.getElementById("agenda").style.display = "block";
 
   setTimeout(() => {
     const calendarEl = document.getElementById("calendar");
@@ -453,3 +485,4 @@ render();
 
 </body>
 </html>
+
