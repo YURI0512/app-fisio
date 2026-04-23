@@ -401,7 +401,7 @@ function abrirAgenda() {
           select.innerHTML += `<option value="${p.id}">${p.nome}</option>`;
         });
 
-        modalAgenda.style.display = "block";
+        document.getElementById("modalAgenda").style.display = "block";
       },
 
       eventDrop: function(info) {
@@ -475,7 +475,7 @@ function salvarAgendamento() {
 
 // ===== MODAL =====
 function fecharModal() {
-  modalAgenda.style.display = "none";
+  document.getElementById("modalAgenda").style.display = "none";
 }
 
 // ===== INIT =====
