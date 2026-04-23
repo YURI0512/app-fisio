@@ -1,14 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <meta charset="UTF-8">
   <title>Controle Pacientes</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#ff69b4">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <link rel="manifest" href="manifest.json">
 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- FULLCALENDAR -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 
@@ -29,9 +27,15 @@
       padding: 20px;
     }
 
-    h1, h3 {
+    h1 {
       text-align: center;
       color: white;
+      margin-bottom: 20px;
+    }
+
+    h3 {
+      color: white;
+      margin-top: 20px;
     }
 
     input, button, select {
@@ -44,8 +48,7 @@
 
     .card {
       position: relative;
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(12px);
+      background: rgba(255,255,255,0.2);
       padding: 15px;
       margin-top: 12px;
       border-radius: 15px;
@@ -53,36 +56,58 @@
     }
 
     button {
-      background: linear-gradient(45deg, #024f14, #28a745);
+      background: #28a745;
       color: white;
+      cursor: pointer;
     }
 
     .btn-excluir {
       background: #dc3545;
     }
 
-    .btn-copy {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      width: 36px;
-      height: 36px;
-    }
-
     #calendar {
       margin-top: 20px;
-      background: white;
+      background: rgb(255, 255, 255);
       border-radius: 10px;
       padding: 10px;
     }
 
-    #modalAgendamento {
+    #modalAgenda {
       display: none;
       background: white;
       padding: 15px;
       border-radius: 10px;
       margin-top: 10px;
     }
+    .btn-copy {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+
+  width: 36px;
+  height: 36px;
+
+  border-radius: 8px;
+  font-size: 18px;
+
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.3);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  padding: 0; /* 🔥 importante pra não ficar gigante */
+  margin: 0;  /* 🔥 evita deslocamento */
+
+  transition: 0.2s;
+}
+
+.btn-copy:hover {
+  transform: scale(1.1);
+}
   </style>
 </head>
 
@@ -99,21 +124,23 @@
 
   <h3>Pacientes</h3>
 
+  <!-- 🔥 NOVO BOTÃO -->
   <button onclick="abrirAgenda()">📅 Abrir Agenda</button>
+
   <button onclick="fecharMes()">Fechar Mês</button> 
-  <button class="btn-excluir" onclick="excluirTodos()">Excluir Todos</button>
+  <button class="btn-excluir" onclick="excluirTodos()">Excluir Todos os Pacientes</button>
 
   <div id="lista"></div>
 
+  <!-- 🔥 AGENDA -->
   <div id="agenda" style="display:none;">
-    <h3>Agenda</h3>
     <div id="calendar"></div>
 
-    <div id="modalAgendamento">
+    <div id="modalAgenda">
       <h4>Novo Agendamento</h4>
-      <input type="time" id="horaModal">
-      <select id="pacienteModal"></select>
-      <button onclick="confirmarAgendamento()">Salvar</button>
+      <input type="time" id="horaAgenda">
+      <select id="pacienteAgenda"></select>
+      <button onclick="salvarAgendamento()">Salvar</button>
       <button onclick="fecharModal()">Cancelar</button>
     </div>
   </div>
@@ -121,12 +148,15 @@
 </div>
 
 <script>
+
+// ===== DADOS =====
 let pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
 let agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
 
-let dataSelecionada = null;
 let calendarGlobal = null;
+let dataSelecionada = null;
 
+// ===== SALVAR =====
 function salvar() {
   localStorage.setItem("pacientes", JSON.stringify(pacientes));
   localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
@@ -152,30 +182,29 @@ function adicionarPaciente() {
 
 function adicionarCheckin(id) {
   const paciente = pacientes.find(p => p.id === id);
+
   paciente.checkins.push({
     data: new Date().toISOString(),
     valor: paciente.valorSessao
   });
+
   salvar();
   render();
 }
 
 function excluirPaciente(id) {
-  if (!confirm("Tem certeza que deseja excluir este paciente?")) return;
+  if (!confirm("Excluir paciente?")) return;
   pacientes = pacientes.filter(p => p.id !== id);
   salvar();
   render();
 }
 
-function excluirTodos() {
-  if (!confirm("Excluir todos?")) return;
-  pacientes = [];
-  salvar();
-  render();
-}
+function fecharPaciente(id) {
+  const paciente = pacientes.find(p => p.id === id);
 
-function fecharMes() {
-  pacientes.forEach(p => p.checkins = []);
+  if (!confirm("Zerar sessões desse paciente?")) return;
+
+  paciente.checkins = [];
   salvar();
   render();
 }
@@ -183,18 +212,18 @@ function fecharMes() {
 function alterarValor(id) {
   const paciente = pacientes.find(p => p.id === id);
   const novoValor = prompt(`Valor atual: R$ ${paciente.valorSessao}`);
+
   if (!novoValor) return;
 
-  const valorNumerico = parseFloat(novoValor);
-  if (isNaN(valorNumerico)) return alert("Valor inválido");
-
-  paciente.valorSessao = valorNumerico;
+  paciente.valorSessao = parseFloat(novoValor);
   salvar();
   render();
 }
 
+// ===== CALCULOS =====
 function calcularTotalMes(paciente) {
   const hoje = new Date();
+
   return paciente.checkins
     .filter(c => {
       const d = new Date(c.data);
@@ -212,11 +241,28 @@ function copiarInfo(id) {
   const hoje = new Date();
   const mesAno = `${String(hoje.getMonth() + 1).padStart(2, '0')}/${hoje.getFullYear()}`;
 
-  const sessoesMes = paciente.checkins.filter(c => {
+  // 🔥 filtra checkins do mês atual
+  const checkinsMes = paciente.checkins.filter(c => {
     const d = new Date(c.data);
     return d.getMonth() === hoje.getMonth() &&
            d.getFullYear() === hoje.getFullYear();
-  }).length;
+  });
+
+  const sessoesMes = checkinsMes.length;
+
+  // 🔥 monta lista de dias
+  let listaDias = "";
+  checkinsMes.forEach(c => {
+    const d = new Date(c.data);
+    const dia = String(d.getDate()).padStart(2, '0');
+    const mes = String(d.getMonth() + 1).padStart(2, '0');
+
+    listaDias += `📅 ${dia}/${mes} - R$ ${c.valor}\n`;
+  });
+
+  if (!listaDias) {
+    listaDias = "Nenhuma sessão registrada.";
+  }
 
   const texto =
 `📋 *Resumo de Atendimento*
@@ -224,13 +270,30 @@ function copiarInfo(id) {
 👤 Paciente: ${paciente.nome}
 📅 Mês: ${mesAno}
 💰 Valor da sessão: R$ ${paciente.valorSessao}
+
 🧾 Sessões realizadas: ${sessoesMes}
-💵 Total no mês: R$ ${total}
+
+📆 *Dias das sessões:*
+${listaDias}
+
+💵 *Total no mês: R$ ${total}*
 
 Qualquer dúvida estou à disposição!`;
 
   navigator.clipboard.writeText(texto)
     .then(() => alert("Informações copiadas!"));
+}
+// ===== HISTORICO =====
+function verHistorico(id) {
+  const paciente = pacientes.find(p => p.id === id);
+
+  let texto = "Histórico:\n";
+
+  paciente.checkins.forEach(c => {
+    texto += new Date(c.data).toLocaleString() + " - R$ " + c.valor + "\n";
+  });
+
+  alert(texto || "Sem histórico");
 }
 
 // ===== RENDER =====
@@ -242,6 +305,7 @@ function render() {
 
     lista.innerHTML += `
       <div class="card">
+
         <button class="btn-copy" onclick="copiarInfo(${p.id})">📋</button>
 
         <strong>${p.nome}</strong><br>
@@ -250,18 +314,20 @@ function render() {
 
         <button onclick="adicionarCheckin(${p.id})">Check-in</button>
         <button onclick="alterarValor(${p.id})">Alterar</button>
+        <button onclick="verHistorico(${p.id})">Histórico</button>
+        <button onclick="fecharPaciente(${p.id})">Fechar Paciente</button>
         <button class="btn-excluir" onclick="excluirPaciente(${p.id})">Excluir</button>
       </div>
     `;
   });
 }
 
-// ===== AGENDA COM DRAG & DROP =====
+// ===== AGENDA =====
 function abrirAgenda() {
   agenda.style.display = "block";
 
   setTimeout(() => {
-    const calendarEl = document.getElementById('calendar');
+    const calendarEl = document.getElementById("calendar");
 
     if (calendarGlobal) {
       calendarGlobal.refetchEvents();
@@ -271,92 +337,118 @@ function abrirAgenda() {
     calendarGlobal = new FullCalendar.Calendar(calendarEl, {
       initialView: 'timeGridWeek',
       locale: 'pt-br',
+      selectable: true,
       editable: true,
+      allDaySlot: false,
 
       events: function(fetchInfo, successCallback) {
         const eventos = agendamentos.map(a => {
           const p = pacientes.find(p => p.id == a.pacienteId);
+
           return {
             id: a.id,
             title: p ? p.nome : "Paciente",
-            start: a.data + "T" + a.hora
+            start: a.data + "T" + a.hora,
+            color: a.status === "realizado" ? "green" : "blue"
           };
         });
 
         successCallback(eventos);
       },
 
-      dateClick: function(info) {
-        dataSelecionada = info.dateStr;
+      select: function(info) {
+        dataSelecionada = info.startStr.split("T")[0];
 
-        const select = document.getElementById("pacienteModal");
+        document.getElementById("horaAgenda").value =
+          info.startStr.split("T")[1]?.slice(0,5) || "";
+
+        const select = document.getElementById("pacienteAgenda");
         select.innerHTML = "";
 
         pacientes.forEach(p => {
           select.innerHTML += `<option value="${p.id}">${p.nome}</option>`;
         });
 
-        document.getElementById("modalAgendamento").style.display = "block";
+        modalAgenda.style.display = "block";
       },
 
       eventDrop: function(info) {
-        const eventoId = info.event.id;
-        const agendamento = agendamentos.find(a => a.id == eventoId);
+        const ag = agendamentos.find(a => a.id == info.event.id);
 
-        if (agendamento) {
-          const novaData = info.event.start;
-
-          agendamento.data = novaData.toISOString().split("T")[0];
-          agendamento.hora = novaData.toTimeString().slice(0,5);
-
+        if (ag) {
+          const d = info.event.start;
+          ag.data = d.toISOString().split("T")[0];
+          ag.hora = d.toTimeString().slice(0,5);
           salvar();
         }
       },
 
       eventClick: function(info) {
-        if (confirm("Excluir agendamento?")) {
-          agendamentos = agendamentos.filter(a => a.id != info.event.id);
+        const ag = agendamentos.find(a => a.id == info.event.id);
+
+        const opcao = prompt(
+`1 - Marcar como realizado
+2 - Excluir`
+        );
+
+        if (opcao == "1") {
+          if (ag.status === "realizado") return alert("Já realizado");
+
+          const paciente = pacientes.find(p => p.id == ag.pacienteId);
+
+          paciente.checkins.push({
+            data: new Date().toISOString(),
+            valor: paciente.valorSessao
+          });
+
+          ag.status = "realizado";
+
           salvar();
-          calendarGlobal.refetchEvents();
+          render();
         }
+
+        if (opcao == "2") {
+          agendamentos = agendamentos.filter(a => a.id != ag.id);
+          salvar();
+        }
+
+        calendarGlobal.refetchEvents();
       }
+
     });
 
     calendarGlobal.render();
   }, 200);
 }
 
-function confirmarAgendamento() {
-  const hora = document.getElementById("horaModal").value;
-  const pacienteId = document.getElementById("pacienteModal").value;
+// ===== SALVAR AGENDAMENTO =====
+function salvarAgendamento() {
+  const hora = document.getElementById("horaAgenda").value;
+  const pacienteId = document.getElementById("pacienteAgenda").value;
 
-  if (!hora) return alert("Escolha o horário");
+  if (!hora) return alert("Escolha horário");
 
   agendamentos.push({
     id: Date.now(),
     data: dataSelecionada,
-    hora: hora,
-    pacienteId: pacienteId
+    hora,
+    pacienteId,
+    status: "pendente"
   });
 
   salvar();
-
-  if (calendarGlobal) {
-    calendarGlobal.refetchEvents();
-  }
-
+  calendarGlobal.refetchEvents();
   fecharModal();
 }
 
+// ===== MODAL =====
 function fecharModal() {
-  document.getElementById("modalAgendamento").style.display = "none";
+  modalAgenda.style.display = "none";
 }
 
+// ===== INIT =====
 render();
 
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js");
-}
 </script>
 
 </body>
